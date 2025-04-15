@@ -1,8 +1,8 @@
 //
 //  WeatherApp.swift
-//  Weather
+//  WeatherApp
 //
-//  Created by Sarala, Seema on 4/14/25.
+//  Created by Sarala, Seema on 4/13/25.
 //
 
 import SwiftUI
