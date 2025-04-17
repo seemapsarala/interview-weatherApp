@@ -14,6 +14,7 @@ struct ForecastCard: View {
         VStack {
             Text(day.date)
                 .font(.headline)
+                .foregroundColor(.black)
             AsyncImage(url: URL(string: "https://openweathermap.org/img/wn/\(day.icon)@2x.png")) { image in
                 image.resizable()
             } placeholder: {
@@ -22,13 +23,11 @@ struct ForecastCard: View {
             .frame(width: 50, height: 50)
             Text(day.temp)
                 .bold()
+                .foregroundColor(.black)
             Text(day.description)
                 .font(.caption)
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
-        .shadow(radius: 2)
+                .foregroundColor(.black)
+        }.forcastCardStyle()
     }
 }
 

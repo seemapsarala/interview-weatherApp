@@ -22,16 +22,24 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         didSet {
             if let city = selectedCity {
                 fetchWeather(for: city)
+                fetchHourlyForecast(for: city)
             } else if let lat = currentLatitude, let lon = currentLongitude {
                 fetchCurrentLocationWeather(latitude: lat, longitude: lon)
+                service.fetchHourlyForecast(latitude: lat, longitude: lon, isMetric: isMetric) { [weak self] forecasts in
+                    DispatchQueue.main.async {
+                        self?.hourlyForecast = forecasts ?? []
+                    }
+                }
             }
-//            if let city = selectedCity {
-//                fetchWeather(for: city)
-//            }
         }
     }
     @Published var cityInput: String = ""
     @Published var isSelectingCity = false
+
+    @Published var selectedForecastDay: ForecastDay? = nil
+    @Published var hourlyForecast: [HourlyForecast] = []
+    @Published var showHourlySheet = false
+
     private var cancellables = Set<AnyCancellable>()
 
     private var debounceTimer: AnyCancellable?
@@ -58,6 +66,7 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                     self.isSelectingCity = false
                 }
             }
+        self.fetchHourlyForecast()
     }
 
     func fetchWeather(for selectedCity: GeocodedCity) {
@@ -110,8 +119,8 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
-    private var currentLatitude: Double?
-    private var currentLongitude: Double?
+    var currentLatitude: Double?
+    var currentLongitude: Double?
 
     func fetchCurrentLocationWeather(latitude: Double, longitude: Double) {
         self.currentLatitude = latitude
@@ -161,6 +170,26 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         fetchWeather(for: selected)
     }
 
+    func fetchHourlyForecast(for city: GeocodedCity) {
+        service.fetchHourlyForecast(latitude: city.lat, longitude: city.lon, isMetric: isMetric) { [weak self] forecasts in
+            DispatchQueue.main.async {
+                self?.hourlyForecast = forecasts ?? []
+            }
+        }
+    }
+
+    func fetchHourlyForecast() {
+        if let city = selectedCity {
+            fetchHourlyForecast(for: city)
+        } else if let lat = currentLatitude, let lon = currentLongitude {
+            service.fetchHourlyForecast(latitude: lat, longitude: lon, isMetric: isMetric) { [weak self] forecasts in
+                DispatchQueue.main.async {
+                    self?.hourlyForecast = forecasts ?? []
+                }
+            }
+        }
+    }
+
 }
 
 
@@ -173,10 +202,3 @@ struct GeocodedCity: Decodable, Hashable {
     let lon: Double
 }
 
-struct HourlyForecast: Identifiable {
-    let id = UUID()
-    let time: String
-    let temp: String
-    let icon: String
-    let description: String
-}

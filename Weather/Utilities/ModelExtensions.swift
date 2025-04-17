@@ -16,6 +16,7 @@ extension WeatherViewModel {
 
         // Fetch the current weather using the coordinates
         fetchCurrentLocationWeather(latitude: latitude, longitude: longitude)
+        fetchHourlyForecast()
         manager.stopUpdatingLocation()
     }
 

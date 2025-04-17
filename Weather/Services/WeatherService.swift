@@ -53,7 +53,36 @@ class WeatherService {
         return try JSONDecoder().decode([GeocodedCity].self, from: data)
     }
 
+    func fetchHourlyForecast(latitude: Double, longitude: Double, isMetric: Bool, completion: @escaping ([HourlyForecast]?) -> Void) {
+        let unit = isMetric ? "metric" : "imperial"
+        let urlString = "https://api.openweathermap.org/data/3.0/onecall?lat=\(latitude)&lon=\(longitude)&exclude=current,minutely,daily,alerts&units=\(unit)&appid=\(apiKey)"
 
+        guard let url = URL(string: urlString) else {
+            completion(nil)
+            return
+        }
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            guard let data = data, error == nil else {
+                print("Error fetching hourly forecast:", error ?? "")
+                completion(nil)
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode(HourlyResponse.self, from: data)
+                let next12Hours = Array(decoded.hourly.prefix(12))
+                completion(next12Hours)
+            } catch {
+                print("Failed to decode hourly forecast:", error)
+                completion(nil)
+            }
+        }.resume()
+    }
+
+    private struct HourlyResponse: Codable {
+        let hourly: [HourlyForecast]
+    }
 }
 
 

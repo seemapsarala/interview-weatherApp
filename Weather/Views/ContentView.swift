@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var viewModel = WeatherViewModel()
     @FocusState private var cityFieldFocused: Bool
+    @State private var showingHourlyForecast = false
 
     var body: some View {
         NavigationView {
@@ -17,28 +18,14 @@ struct ContentView: View {
                 LinearGradient.weatherBackground
                         .ignoresSafeArea()
                 VStack(spacing: 0) {
-                    Text("Weather Overview")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
-                        .background(Color(red: 255/255, green: 180/255, blue: 140/255))
-                        .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 2)
-                        .padding(.bottom, 30)
-
+                    Text("Weather Overview").headerTextStyle()
                     TextField("Enter city name", text: $viewModel.city)
+                        .cityTextFieldStyle()
                         .focused($cityFieldFocused)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.horizontal)
 
                     Toggle(isOn: $viewModel.isMetric) {
                         Text(viewModel.isMetric ? "Metric (°C)" : "Imperial (°F)")
-                    }
-                    .toggleStyle(SwitchToggleStyle(tint: .orange))
-                    .padding(.horizontal)
-                    .padding(.top, 20)
-                    .padding(.bottom, 20)
+                    }.customStyledToggle()
 
                     VStack(spacing: 8) {
                         if !viewModel.currentTemp.isEmpty {
@@ -57,42 +44,82 @@ struct ContentView: View {
                         .frame(width: 100, height: 100)
                     }
 
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(viewModel.forecast) { day in
-                                ForecastCard(day: day)
+                    VStack {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing:0) {
+                                ForEach(viewModel.forecast) { day in
+                                    Button(action: {
+                                        viewModel.selectedForecastDay = day
+                                        viewModel.fetchHourlyForecast()
+                                        showingHourlyForecast = true
+                                    }) {
+                                        ForecastCard(day: day)
+                                    }
+                                }
                             }
+                            .padding(.horizontal, 0)
                         }
-                        .padding(.horizontal)
+                        .sheet(isPresented: $showingHourlyForecast) {
+                            HourlyForecastView(
+                                hourlyForecast: viewModel.hourlyForecast,
+                                isMetric: viewModel.isMetric, 
+                                cityName: viewModel.selectedCity?.name ?? "Current Location",
+                                forecastDay: viewModel.selectedForecastDay
+                            )
+                        }
                     }
-                    Spacer()
+                    .padding(.bottom, 30)
+                    Divider()
+                        .padding(.vertical, 8)
+
+                    if viewModel.forecast.first != nil {
+                        Text("Today’s Hourly Forecast").hourlyForecastStyle()
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack {
+                                ForEach(viewModel.hourlyForecast) { hour in
+                                    VStack {
+                                        Text(formatHour(hour.dt))
+                                        AsyncImage(url: URL(string: "https://openweathermap.org/img/wn/\(hour.weather.first?.icon ?? "01d")@2x.png")) { image in
+                                            image.resizable()
+                                        } placeholder: {
+                                            ProgressView()
+                                        }
+                                        .frame(width: 30, height: 30)
+                                        Text("\(Int(hour.temp))°\(viewModel.isMetric ? "C" : "F")")
+                                    }
+                                    .frame(width: 60)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    } else {
+                        ProgressView("Loading forecast...")
+                    }
                 }
-                
+
                 if !viewModel.citySuggestions.isEmpty {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 4) {
                             ForEach(viewModel.citySuggestions, id: \.self) { city in
                                 Text("\(city.name), \(city.state ?? ""), \(city.country)")
-                                    .padding(.vertical, 6)
-                                    .padding(.horizontal)
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(6)
+                                    .citySuggestionsTextStyle()
                                     .onTapGesture {
                                         viewModel.selectCity(city)
                                     }
                             }
                         }
                         .padding(.horizontal)
-                    }
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .shadow(radius: 5)
-                    .frame(maxHeight: 150)
-                    .padding(.horizontal)
-                    .padding(.top, 120) // Adjust based on the TextField height
+                    }.customScrollStyle()
                 }
             }
         }
+    }
+
+    func formatHour(_ time: TimeInterval) -> String {
+        let date = Date(timeIntervalSince1970: time)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "ha"
+        return formatter.string(from: date)
     }
 }
 
