@@ -88,7 +88,7 @@ extension ScrollView {
 
 
 extension VStack {
-    func forcastCardStyle() -> some View {
+    func forecastCardStyle() -> some View {
         self.padding()
             .background(
                 RoundedRectangle(cornerRadius: 10)

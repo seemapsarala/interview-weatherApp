@@ -115,6 +115,11 @@ struct ContentView: View {
         }
     }
 
+    /** Formats a timestamp into a short hour format (e.g. "3PM")
+     *
+     *  - Parameter time: TimeInterval
+     *  - Returns: Formatted hour string
+     */
     func formatHour(_ time: TimeInterval) -> String {
         let date = Date(timeIntervalSince1970: time)
         let formatter = DateFormatter()

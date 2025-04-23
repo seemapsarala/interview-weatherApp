@@ -46,7 +46,7 @@ struct ForecastDay: Identifiable {
 }
 
 struct HourlyForecast: Identifiable, Codable {
-    let id = UUID()  // ✅ This makes it Identifiable
+    let id = UUID() 
     let dt: TimeInterval
     let temp: Double
     let weather: [Weather]

@@ -27,7 +27,7 @@ struct ForecastCard: View {
             Text(day.description)
                 .font(.caption)
                 .foregroundColor(.black)
-        }.forcastCardStyle()
+        }.forecastCardStyle()
     }
 }
 

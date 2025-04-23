@@ -69,6 +69,10 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.fetchHourlyForecast()
     }
 
+    /** Fetches current weather and 5-day forecast data for a selected city.
+     *
+     *  - Parameter selectedCity: A 'GeocodedCity' object containing latitude and longitude of the selected location.
+     */
     func fetchWeather(for selectedCity: GeocodedCity) {
         Task {
             do {
@@ -98,6 +102,9 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
+    /**
+     * Fetches city name suggestions based on the current input.
+     */
     func fetchCitySuggestions() {
         Task {
             do {
@@ -122,6 +129,13 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     var currentLatitude: Double?
     var currentLongitude: Double?
 
+    /**
+     * Fetches weather data based on the user's current geographic coordinates.
+     *
+     * - Parameters:
+     *   - latitude: The latitude of the user's current location.
+     *   - longitude: The longitude of the user's current location.
+     */
     func fetchCurrentLocationWeather(latitude: Double, longitude: Double) {
         self.currentLatitude = latitude
         self.currentLongitude = longitude
@@ -150,6 +164,12 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
+    /**
+     * Converts a Unix timestamp into a medium-style date string (e.g., "Apr 20, 2025").
+     *
+     * - Parameter timestamp: The Unix time (seconds since 1970) to format.
+     * - Returns: A formatted date string in medium style with no time component.
+     */
     private func formatDate(timestamp: Int) -> String {
         let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
         let formatter = DateFormatter()
@@ -159,6 +179,14 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         return formatter.string(from: date)
     }
 
+    /**
+     * Handles selection of a city from the list of suggestions.
+     *
+     * Updates the city text field, clears suggestions, stores the selected city,
+     * and triggers weather data fetching for the selected location.
+     *
+     * - Parameter selected: The 'GeocodedCity' object selected by the user.
+     */
     func selectCity(_ selected: GeocodedCity) {
         isSelectingCity = true
         let cityText = [selected.name, selected.state, selected.country]
@@ -170,6 +198,13 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         fetchWeather(for: selected)
     }
 
+    /**
+     * Fetches the hourly weather forecast for a specified city using its coordinates.
+     *
+     * - Parameter city: A 'GeocodedCity' object containing latitude and longitude.
+     *
+     * The method uses the 'service'  to call the weather API and retrieves forecast data in either metric or imperial units based on the 'isMetric' flag.
+     */
     func fetchHourlyForecast(for city: GeocodedCity) {
         service.fetchHourlyForecast(latitude: city.lat, longitude: city.lon, isMetric: isMetric) { [weak self] forecasts in
             DispatchQueue.main.async {
@@ -178,6 +213,14 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
 
+    /**
+     * Fetches the hourly weather forecast based on the currently selected city or the device's current location.
+     *
+     * If a city is selected, it fetches the forecast using the city's coordinates.
+     * Otherwise, it falls back to the current latitude and longitude.
+     *
+     * The forecast data is assigned to the 'hourlyForecast' variables.
+     */
     func fetchHourlyForecast() {
         if let city = selectedCity {
             fetchHourlyForecast(for: city)
@@ -189,9 +232,7 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
             }
         }
     }
-
 }
-
 
 struct GeocodedCity: Decodable, Hashable {
 //    var id: UUID = UUID()
