@@ -1,6 +1,7 @@
 //
 //  WeatherData.swift
 //  WeatherApp
+//  Used for parsing and organizing weather data received from the OpenWeatherMap
 //
 //  Created by Sarala, Seema on 4/13/25.
 //

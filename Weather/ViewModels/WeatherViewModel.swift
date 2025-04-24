@@ -19,7 +19,7 @@ class WeatherViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var citySuggestions: [GeocodedCity] = []
     @Published var selectedCity: GeocodedCity?
     @Published var isMetric: Bool = true {
-        didSet {
+        didSet { //observes to trigger API calls based on isMetric property
             if let city = selectedCity {
                 fetchWeather(for: city)
                 fetchHourlyForecast(for: city)
